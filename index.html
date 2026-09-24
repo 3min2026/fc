@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <title>IT 工具箱</title>
+
+  <!-- Pico.css -->
+  <link rel="stylesheet"
+        href="./pico.min.css">
+
+  <!-- sql.js -->
+  <script src="./sql-wasm.js"></script>
+
+  <style>
+    :root {
+      --pico-font-size: 95%;
+    }
+
+    body {
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .toolbar input[type="search"] {
+      flex: 1 1 200px;
+      margin-bottom: 0;
+    }
+
+    .toolbar select {
+      flex: 0 0 auto;
+      width: auto;
+      min-width: 100px;
+      margin-bottom: 0;
+    }
+
+    .toolbar button {
+      flex: 0 0 auto;
+      margin-bottom: 0;
+    }
+
+    /* 命令速查表格 */
+    .cmd-table {
+      width: 100%;
+      font-size: 0.9rem;
+    }
+
+    .cmd-table th,
+    .cmd-table td {
+      padding: 0.5rem 0.6rem;
+      vertical-align: top;
+    }
+
+    .cmd-text {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 0.85rem;
+      word-break: break-all;
+      white-space: pre-wrap;
+    }
+
+    .cmd-text.ps {
+      color: #0d9488;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .badge-cmd    { background: #e2e8f0; color: #334155; }
+    .badge-ps     { background: #ccfbf1; color: #0f766e; }
+    .badge-parent { background: #e0e7ff; color: #3730a3; }
+    .badge-child  { background: #fce7f3; color: #9d174d; }
+
+    .btn-copy {
+      padding: 0.2rem 0.6rem;
+      font-size: 0.8rem;
+      margin-bottom: 0;
+    }
+
+    /* 软件链接卡片 */
+    .sw-category {
+      margin-bottom: 1.6rem;
+    }
+
+    .sw-category > h3 {
+      margin-bottom: 0.6rem;
+      padding-bottom: 0.3rem;
+      border-bottom: 2px solid var(--pico-primary);
+      font-size: 1.05rem;
+    }
+
+    .sw-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 0.7rem;
+    }
+
+    .sw-card {
+      border: 1px solid var(--pico-muted-border-color);
+      border-radius: 8px;
+      padding: 0.75rem 0.85rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      transition: box-shadow 0.15s;
+      background: var(--pico-card-background-color);
+    }
+
+    .sw-card:hover {
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .sw-card .sw-name {
+      font-weight: 700;
+      font-size: 0.95rem;
+      line-height: 1.3;
+    }
+
+    .sw-card .sw-desc {
+      font-size: 0.8rem;
+      color: var(--pico-muted-color);
+      line-height: 1.35;
+      flex: 1;
+    }
+
+    .sw-card .sw-platform {
+      font-size: 0.75rem;
+      color: var(--pico-primary);
+      font-weight: 600;
+    }
+
+    .sw-card .sw-actions {
+      display: flex;
+      gap: 0.4rem;
+      margin-top: 0.3rem;
+    }
+
+    .sw-card .sw-actions a,
+    .sw-card .sw-actions button {
+      flex: 1;
+      text-align: center;
+      padding: 0.3rem 0.4rem;
+      font-size: 0.8rem;
+      border-radius: 5px;
+      text-decoration: none;
+      margin-bottom: 0;
+      cursor: pointer;
+      border: none;
+    }
+
+    .sw-btn-open {
+      background: var(--pico-primary);
+      color: #fff;
+    }
+
+    .sw-btn-copy {
+      background: var(--pico-muted-border-color);
+      color: var(--pico-color);
+    }
+
+    /* 移动端适配 */
+    @media (max-width: 576px) {
+      .cmd-table .hide-mobile {
+        display: none;
+      }
+
+      .sw-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 0.5rem;
+      }
+
+      .sw-card {
+        padding: 0.6rem 0.7rem;
+      }
+
+      .toolbar select {
+        min-width: 80px;
+        font-size: 0.82rem;
+      }
+    }
+
+    .empty-tip {
+      text-align: center;
+      padding: 2rem 1rem;
+      color: var(--pico-muted-color);
+    }
+
+    .loading {
+      text-align: center;
+      padding: 3rem 1rem;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 1.2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1e293b;
+      color: #fff;
+      padding: 0.55rem 1.1rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      z-index: 999;
+      opacity: 0;
+      transition: opacity 0.25s;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+
+<main class="container">
+
+  <header style="margin-bottom:1rem;">
+    <h2 style="margin-bottom:0.15rem;">IT 工具箱</h2>
+    <small style="color:var(--pico-muted-color);">命令速查 · 软件链接</small>
+  </header>
+
+  <div id="loading" class="loading">
+    <p>正在加载数据库…</p>
+  </div>
+
+  <div id="app" style="display:none;">
+
+    <nav>
+      <ul>
+        <li><a href="#" id="tab-cmd" class="active" onclick="switchTab('cmd');return false;">命令速查</a></li>
+        <li><a href="#" id="tab-sw" onclick="switchTab('sw');return false;">软件链接</a></li>
+      </ul>
+    </nav>
+
+    <!-- ============ 命令速查 ============ -->
+    <section id="section-cmd">
+      <div class="toolbar">
+        <input type="search" id="cmd-keyword" placeholder="输入关键字搜索命令…"
+               oninput="filterCommands()">
+        <select id="cmd-parent" onchange="onParentChange()">
+          <option value="">全部平台</option>
+        </select>
+        <select id="cmd-child" onchange="filterCommands()">
+          <option value="">全部分类</option>
+        </select>
+        <select id="cmd-shell" onchange="filterCommands()">
+          <option value="">全部 Shell</option>
+          <option value="CMD">CMD</option>
+          <option value="PowerShell">PowerShell</option>
+          <option value="Bash">Bash</option>
+          <option value="Linux">Linux</option>
+          <option value="Windows">Windows</option>
+        </select>
+        <button class="outline" onclick="resetCmdFilters()" style="padding:0.4rem 0.8rem;font-size:0.85rem;">重置</button>
+      </div>
+
+      <div id="cmd-count" style="font-size:0.85rem;color:var(--pico-muted-color);margin-bottom:0.5rem;"></div>
+
+      <div style="overflow-x:auto;">
+        <table class="cmd-table">
+          <thead>
+            <tr>
+              <th style="width:50px;">ID</th>
+              <th>命令</th>
+              <th class="hide-mobile" style="min-width:120px;">描述</th>
+              <th class="hide-mobile" style="width:90px;">平台</th>
+              <th style="width:80px;">分类</th>
+              <th style="width:70px;">Shell</th>
+              <th style="width:56px;"></th>
+            </tr>
+          </thead>
+          <tbody id="cmd-tbody"></tbody>
+        </table>
+      </div>
+      <div id="cmd-empty" class="empty-tip" style="display:none;">没有匹配的命令</div>
+    </section>
+
+    <!-- ============ 软件链接 ============ -->
+    <section id="section-sw" style="display:none;">
+      <div class="toolbar">
+        <input type="search" id="sw-keyword" placeholder="搜索软件名 / 描述 / 链接…"
+               oninput="filterSoftware()">
+        <select id="sw-platform" onchange="filterSoftware()">
+          <option value="">全部平台</option>
+        </select>
+        <button class="outline" onclick="resetSwFilters()" style="padding:0.4rem 0.8rem;font-size:0.85rem;">重置</button>
+      </div>
+
+      <div id="sw-count" style="font-size:0.85rem;color:var(--pico-muted-color);margin-bottom:0.8rem;"></div>
+      <div id="sw-content"></div>
+      <div id="sw-empty" class="empty-tip" style="display:none;">没有匹配的软件</div>
+    </section>
+
+  </div>
+</main>
+
+<div id="toast" class="toast"></div>
+
+<script>
+// ==================== 全局 ====================
+let db = null;
+let allCommands = [];
+let allSoftware = [];
+
+const SQL_CDN = 'https://cdn.jsdelivr.net/npm/sql.js@1.13.0/dist/';
+const DB_FILE = 'commands.db';
+
+// ==================== 工具函数 ====================
+function $(id) { return document.getElementById(id); }
+
+function showToast(msg) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+function copyText(text) {
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(() => showToast('已复制'));
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); showToast('已复制'); }
+    catch (e) { showToast('复制失败'); }
+    document.body.removeChild(ta);
+  }
+}
+
+function escapeHtml(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// ==================== 加载数据库 ====================
+async function loadDatabase() {
+  try {
+    const SQL = await initSqlJs({
+      locateFile: file => SQL_CDN + file
+    });
+
+    const resp = await fetch(DB_FILE);
+    if (!resp.ok) throw new Error('无法加载 ' + DB_FILE + '（HTTP ' + resp.status + '）');
+    const buffer = await resp.arrayBuffer();
+    db = new SQL.Database(new Uint8Array(buffer));
+
+    // 读取命令表
+    const cmdRes = db.exec(
+      "SELECT id, command_text, description, keywords, " +
+      "parent_category, child_category, shell FROM command_item " +
+      "ORDER BY parent_category, child_category, id"
+    );
+    allCommands = rowsToObjects(cmdRes, [
+      'id','command_text','description','keywords',
+      'parent_category','child_category','shell'
+    ]);
+
+    // 读取软件表
+    const swRes = db.exec(
+      "SELECT id, name, url, description, category, platform " +
+      "FROM software_item ORDER BY category, platform, name"
+    );
+    allSoftware = rowsToObjects(swRes, [
+      'id','name','url','description','category','platform'
+    ]);
+
+    $('loading').style.display = 'none';
+    $('app').style.display = 'block';
+
+    buildCmdFilters();
+    renderCommands();
+    buildSwFilters();
+    renderSoftware();
+
+  } catch (e) {
+    $('loading').innerHTML =
+      '<p style="color:#e74c3c;">数据库加载失败</p>' +
+      '<p style="font-size:0.85rem;">' + escapeHtml(e.message) + '</p>' +
+      '<p style="font-size:0.85rem;">请确认 <code>' + DB_FILE +
+      '</code> 与 HTML 在同一目录，并通过 HTTP 访问（不要直接双击打开 HTML）。</p>';
+  }
+}
+
+function rowsToObjects(result, fields) {
+  if (!result || result.length === 0) return [];
+  return result[0].values.map(row => {
+    const obj = {};
+    fields.forEach((f, i) => { obj[f] = row[i]; });
+    return obj;
+  });
+}
+
+// ==================== Tab 切换 ====================
+function switchTab(tab) {
+  $('section-cmd').style.display = tab === 'cmd' ? '' : 'none';
+  $('section-sw').style.display  = tab === 'sw'  ? '' : 'none';
+  $('tab-cmd').classList.toggle('active', tab === 'cmd');
+  $('tab-sw').classList.toggle('active',  tab === 'sw');
+}
+
+// ==================== 命令速查 ====================
+function buildCmdFilters() {
+  const parents = [...new Set(allCommands.map(c => c.parent_category).filter(Boolean))].sort();
+  const childMap = {};
+  allCommands.forEach(c => {
+    if (!c.parent_category || !c.child_category) return;
+    if (!childMap[c.parent_category]) childMap[c.parent_category] = new Set();
+    childMap[c.parent_category].add(c.child_category);
+  });
+
+  const pSel = $('cmd-parent');
+  parents.forEach(p => {
+    const o = document.createElement('option');
+    o.value = p; o.textContent = p;
+    pSel.appendChild(o);
+  });
+
+  pSel._childMap = childMap;
+}
+
+function onParentChange() {
+  const parent = $('cmd-parent').value;
+  const childSel = $('cmd-child');
+  childSel.innerHTML = '<option value="">全部分类</option>';
+
+  const map = $('cmd-parent')._childMap || {};
+  let children = [];
+  if (parent) {
+    children = map[parent] ? [...map[parent]].sort() : [];
+  } else {
+    const set = new Set();
+    Object.values(map).forEach(s => s.forEach(c => set.add(c)));
+    children = [...set].sort();
+  }
+
+  children.forEach(c => {
+    const o = document.createElement('option');
+    o.value = c; o.textContent = c;
+    childSel.appendChild(o);
+  });
+
+  filterCommands();
+}
+
+function filterCommands() {
+  const kw     = $('cmd-keyword').value.trim().toLowerCase();
+  const parent = $('cmd-parent').value;
+  const child  = $('cmd-child').value;
+  const shell  = $('cmd-shell').value;
+
+  const terms = kw ? kw.replace(/[；;]/g, ' ').split(/\s+/).filter(Boolean) : [];
+
+  const filtered = allCommands.filter(c => {
+    if (parent && c.parent_category !== parent) return false;
+    if (child  && c.child_category  !== child)  return false;
+    if (shell  && c.shell           !== shell)  return false;
+
+    if (terms.length) {
+      const haystack = [
+        c.command_text, c.description, c.keywords,
+        c.parent_category, c.child_category
+      ].join(' ').toLowerCase();
+      return terms.every(t => haystack.includes(t));
+    }
+    return true;
+  });
+
+  renderCommands(filtered);
+}
+
+function renderCommands(list) {
+  if (!list) list = allCommands;
+  const tbody = $('cmd-tbody');
+  tbody.innerHTML = '';
+
+  const empty = $('cmd-empty');
+  const count = $('cmd-count');
+
+  if (list.length === 0) {
+    empty.style.display = '';
+    count.textContent = '';
+    return;
+  }
+  empty.style.display = 'none';
+  count.textContent = `共 ${list.length} 条命令`;
+
+  list.forEach(c => {
+    const tr = document.createElement('tr');
+    const isPs = (c.shell || '').toLowerCase() === 'powershell';
+
+    tr.innerHTML =
+      `<td>${c.id}</td>` +
+      `<td><div class="cmd-text${isPs ? ' ps' : ''}">${escapeHtml(c.command_text)}</div></td>` +
+      `<td class="hide-mobile">${escapeHtml(c.description || '—')}</td>` +
+      `<td class="hide-mobile"><span class="badge badge-parent">${escapeHtml(c.parent_category || '—')}</span></td>` +
+      `<td><span class="badge badge-child">${escapeHtml(c.child_category || '—')}</span></td>` +
+      `<td><span class="badge ${isPs ? 'badge-ps' : 'badge-cmd'}">${escapeHtml(c.shell || 'CMD')}</span></td>` +
+      `<td><button class="btn-copy outline" onclick="copyText(${JSON.stringify(c.command_text).replace(/"/g, '&quot;')})">复制</button></td>`;
+
+    tbody.appendChild(tr);
+  });
+}
+
+function resetCmdFilters() {
+  $('cmd-keyword').value = '';
+  $('cmd-parent').value = '';
+  $('cmd-child').innerHTML = '<option value="">全部分类</option>';
+  $('cmd-shell').value = '';
+  renderCommands();
+}
+
+// ==================== 软件链接 ====================
+function buildSwFilters() {
+  const platforms = [...new Set(allSoftware.map(s => s.platform).filter(Boolean))].sort();
+  const sel = $('sw-platform');
+  platforms.forEach(p => {
+    const o = document.createElement('option');
+    o.value = p; o.textContent = p;
+    sel.appendChild(o);
+  });
+}
+
+function filterSoftware() {
+  const kw = $('sw-keyword').value.trim().toLowerCase();
+  const platform = $('sw-platform').value;
+  const terms = kw ? kw.replace(/[；;]/g, ' ').split(/\s+/).filter(Boolean) : [];
+
+  const filtered = allSoftware.filter(s => {
+    if (platform && s.platform !== platform) return false;
+    if (terms.length) {
+      const haystack = [s.name, s.url, s.description, s.category, s.platform]
+        .join(' ').toLowerCase();
+      return terms.every(t => haystack.includes(t));
+    }
+    return true;
+  });
+
+  renderSoftware(filtered);
+}
+
+function renderSoftware(list) {
+  if (!list) list = allSoftware;
+  const container = $('sw-content');
+  const empty = $('sw-empty');
+  const count = $('sw-count');
+  container.innerHTML = '';
+
+  if (list.length === 0) {
+    empty.style.display = '';
+    count.textContent = '';
+    return;
+  }
+  empty.style.display = 'none';
+  count.textContent = `共 ${list.length} 个软件`;
+
+  // 按分类分组
+  const groups = {};
+  list.forEach(s => {
+    const cat = s.category || '未分类';
+    if (!groups[cat]) groups[cat] = [];
+    groups[cat].push(s);
+  });
+
+  Object.keys(groups).sort().forEach(cat => {
+    const div = document.createElement('div');
+    div.className = 'sw-category';
+    div.innerHTML = `<h3>${escapeHtml(cat)} <small style="font-weight:400;font-size:0.8rem;">(${groups[cat].length})</small></h3>`;
+
+    const grid = document.createElement('div');
+    grid.className = 'sw-grid';
+
+    groups[cat].forEach(s => {
+      const card = document.createElement('div');
+      card.className = 'sw-card';
+
+      const urlSafe = escapeHtml(s.url);
+      const nameSafe = escapeHtml(s.name);
+
+      card.innerHTML =
+        `<div class="sw-name">${nameSafe}</div>` +
+        (s.platform ? `<div class="sw-platform">${escapeHtml(s.platform)}</div>` : '') +
+        (s.description ? `<div class="sw-desc">${escapeHtml(s.description)}</div>` : '') +
+        `<div class="sw-actions">` +
+        `<a class="sw-btn-open" href="${urlSafe}" target="_blank" rel="noopener">打开</a>` +
+        `<button class="sw-btn-copy" onclick="copyText(${JSON.stringify(s.url).replace(/"/g, '&quot;')})">复制</button>` +
+        `</div>`;
+
+      grid.appendChild(card);
+    });
+
+    div.appendChild(grid);
+    container.appendChild(div);
+  });
+}
+
+function resetSwFilters() {
+  $('sw-keyword').value = '';
+  $('sw-platform').value = '';
+  renderSoftware();
+}
+
+// ==================== 启动 ====================
+loadDatabase();
+</script>
+</body>
+</html>
