@@ -7,8 +7,7 @@
   <title>快捷命令</title>
 
   <!-- Pico.css -->
-  <link rel="stylesheet"
-        href="./pico.min.css">
+  <link rel="stylesheet" href="./pico.min.css">
 
   <!-- sql.js -->
   <script src="./sql-wasm.js"></script>
@@ -66,9 +65,12 @@
       white-space: pre-wrap;
     }
 
-    .cmd-text.ps {
-      color: #0d9488;
-    }
+    /* ==================== 各 Shell 命令文本颜色 ==================== */
+    .cmd-text.shell-powershell { color: #8EC449; }
+    .cmd-text.shell-cmd        { color: #FFFFFF; }
+    .cmd-text.shell-bash       { color: #FF82FC; }
+    .cmd-text.shell-linux      { color: #E0D846; }
+    .cmd-text.shell-windows    { color: #00E6FF; }
 
     .badge {
       display: inline-block;
@@ -79,10 +81,24 @@
       white-space: nowrap;
     }
 
-    .badge-cmd    { background: #e2e8f0; color: #334155; }
-    .badge-ps     { background: #ccfbf1; color: #0f766e; }
+    /* ==================== 各类别 Badge 颜色 ==================== */
     .badge-parent { background: #e0e7ff; color: #3730a3; }
     .badge-child  { background: #fce7f3; color: #9d174d; }
+
+    /* ==================== 各 Shell Badge 颜色 ==================== */
+    .badge-shell-powershell { background: #ccfbf1; color: #0f766e; }
+    .badge-shell-cmd        { background: #e2e8f0; color: #334155; }
+    .badge-shell-bash       { background: #ffedd5; color: #9a3412; }
+    .badge-shell-linux      { background: #f3e8ff; color: #6b21a8; }
+    .badge-shell-windows    { background: #dbeafe; color: #1e40af; }
+
+    /* ==================== 脚本类型 Badge 颜色 ==================== */
+    .badge-script-python     { background: #dbeafe; color: #1e40af; }
+    .badge-script-powershell { background: #ccfbf1; color: #0f766e; }
+    .badge-script-bat        { background: #fef3c7; color: #92400e; }
+    .badge-script-vbs        { background: #fce7f3; color: #9d174d; }
+    .badge-script-shell      { background: #f3e8ff; color: #6b21a8; }
+    .badge-script-default    { background: #e2e8f0; color: #334155; }
 
     .btn-copy {
       padding: 0.2rem 0.6rem;
@@ -90,7 +106,7 @@
       margin-bottom: 0;
     }
 
-    /* 软件链接卡片 */
+    /* 软件链接 / 脚本卡片 */
     .sw-category {
       margin-bottom: 1.6rem;
     }
@@ -104,7 +120,7 @@
 
     .sw-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
       gap: 0.7rem;
     }
 
@@ -171,6 +187,11 @@
       color: var(--pico-color);
     }
 
+    .sw-btn-download {
+      background: #10b981;
+      color: #fff;
+    }
+
     /* 移动端适配 */
     @media (max-width: 576px) {
       .cmd-table .hide-mobile {
@@ -178,7 +199,7 @@
       }
 
       .sw-grid {
-        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
         gap: 0.5rem;
       }
 
@@ -230,7 +251,7 @@
 
   <header style="margin-bottom:1rem;">
     <h2 style="margin-bottom:0.15rem;">快捷命令</h2>
-    <small style="color:var(--pico-muted-color);">命令速查 · 软件链接</small>
+    <small style="color:var(--pico-muted-color);">命令速查 · 软件链接 · 脚本工具</small>
   </header>
 
   <div id="loading" class="loading">
@@ -243,6 +264,7 @@
       <ul>
         <li><a href="#" id="tab-cmd" class="active" onclick="switchTab('cmd');return false;">命令速查</a></li>
         <li><a href="#" id="tab-sw" onclick="switchTab('sw');return false;">软件链接</a></li>
+        <li><a href="#" id="tab-script" onclick="switchTab('script');return false;">脚本工具</a></li>
       </ul>
     </nav>
 
@@ -305,6 +327,25 @@
       <div id="sw-empty" class="empty-tip" style="display:none;">没有匹配的软件</div>
     </section>
 
+    <!-- ============ 脚本工具 ============ -->
+    <section id="section-script" style="display:none;">
+      <div class="toolbar">
+        <input type="search" id="script-keyword" placeholder="搜索脚本名 / 描述 / 依赖 / 关键字…"
+               oninput="filterScripts()">
+        <select id="script-category" onchange="filterScripts()">
+          <option value="">全部分类</option>
+        </select>
+        <select id="script-type" onchange="filterScripts()">
+          <option value="">全部类型</option>
+        </select>
+        <button class="outline" onclick="resetScriptFilters()" style="padding:0.4rem 0.8rem;font-size:0.85rem;">重置</button>
+      </div>
+
+      <div id="script-count" style="font-size:0.85rem;color:var(--pico-muted-color);margin-bottom:0.8rem;"></div>
+      <div id="script-content"></div>
+      <div id="script-empty" class="empty-tip" style="display:none;">没有匹配的脚本</div>
+    </section>
+
   </div>
 </main>
 
@@ -315,8 +356,8 @@
 let db = null;
 let allCommands = [];
 let allSoftware = [];
+let allScripts = []; // 存放脚本数据，方便下载时提取内容
 
-const SQL_CDN = 'https://cdn.jsdelivr.net/npm/sql.js@1.13.0/dist/';
 const DB_FILE = 'commands.db';
 
 // ==================== 工具函数 ====================
@@ -354,11 +395,58 @@ function escapeHtml(str) {
     .replace(/"/g, '&quot;');
 }
 
+// ==================== 下载脚本 ====================
+function downloadScript(id) {
+  const script = allScripts.find(s => s.id === id);
+  if (!script) return;
+
+  const extMap = {
+    'Python':     '.py',
+    'PowerShell': '.ps1',
+    'bat':        '.bat',
+    'vbs':        '.vbs',
+    'Shell':      '.sh'
+  };
+  const ext = extMap[script.script_type] || '.txt';
+  const filename = script.name + ext;
+
+  let content = script.content == null ? '' : String(script.content);
+
+  // ---------- 1. 归一化换行符 ----------
+  // Windows 原生脚本(PowerShell / bat / vbs)以及 .py 用 CRLF；
+  // Linux Shell 脚本用 LF（否则 shebang 后可能出问题）。
+  // 先把已有的 \r\n、单独的 \r、单独的 \n 全部统一，再按目标替换。
+  const useCRLF = ['.ps1', '.bat', '.cmd', '.vbs', '.py'].includes(ext);
+  content = content.replace(/\r\n|\r|\n/g, useCRLF ? '\r\n' : '\n');
+
+  // ---------- 2. 去掉已有 BOM，避免重复 ----------
+  if (content.charCodeAt(0) === 0xFEFF) {
+    content = content.slice(1);
+  }
+
+  // ---------- 3. 仅 .ps1 追加 UTF-8 BOM ----------
+  // Windows PowerShell 5.1 对无 BOM 的 .ps1 会按系统 ANSI(GBK) 解码，中文必乱。
+  if (ext === '.ps1') {
+    content = '\uFEFF' + content;
+  }
+
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('下载已开始: ' + filename);
+}
+
 // ==================== 加载数据库 ====================
 async function loadDatabase() {
   try {
     const SQL = await initSqlJs({
-      locateFile: file => SQL_CDN + file
+      locateFile: file => './' + file 
     });
 
     const resp = await fetch(DB_FILE);
@@ -386,6 +474,15 @@ async function loadDatabase() {
       'id','name','url','description','category','platform'
     ]);
 
+    // 读取脚本表（新增 category 字段）
+    const scriptRes = db.exec(
+      "SELECT id, name, category, script_type, content, description, dependencies, keywords " +
+      "FROM script_item ORDER BY category, script_type, id"
+    );
+    allScripts = rowsToObjects(scriptRes, [
+      'id','name','category','script_type','content','description','dependencies','keywords'
+    ]);
+
     $('loading').style.display = 'none';
     $('app').style.display = 'block';
 
@@ -393,13 +490,15 @@ async function loadDatabase() {
     renderCommands();
     buildSwFilters();
     renderSoftware();
+    buildScriptFilters();
+    renderScripts();
 
   } catch (e) {
     $('loading').innerHTML =
       '<p style="color:#e74c3c;">数据库加载失败</p>' +
       '<p style="font-size:0.85rem;">' + escapeHtml(e.message) + '</p>' +
       '<p style="font-size:0.85rem;">请确认 <code>' + DB_FILE +
-      '</code> 与 HTML 在同一目录，并通过 HTTP 访问（不要直接双击打开 HTML）。</p>';
+      '</code> 和 <code>sql-wasm.wasm</code> 与 HTML 在同一目录，并通过 HTTP 访问（不要直接双击打开 HTML）。</p>';
   }
 }
 
@@ -416,8 +515,10 @@ function rowsToObjects(result, fields) {
 function switchTab(tab) {
   $('section-cmd').style.display = tab === 'cmd' ? '' : 'none';
   $('section-sw').style.display  = tab === 'sw'  ? '' : 'none';
+  $('section-script').style.display = tab === 'script' ? '' : 'none';
   $('tab-cmd').classList.toggle('active', tab === 'cmd');
   $('tab-sw').classList.toggle('active',  tab === 'sw');
+  $('tab-script').classList.toggle('active', tab === 'script');
 }
 
 // ==================== 命令速查 ====================
@@ -508,15 +609,19 @@ function renderCommands(list) {
 
   list.forEach(c => {
     const tr = document.createElement('tr');
-    const isPs = (c.shell || '').toLowerCase() === 'powershell';
+    
+    const rawShell = (c.shell || 'CMD').toLowerCase();
+    const safeShell = rawShell.replace(/[^a-z0-9]/g, ''); 
+    const shellClass = `shell-${safeShell}`;
+    const badgeClass = `badge-shell-${safeShell}`;
 
     tr.innerHTML =
       `<td>${c.id}</td>` +
-      `<td><div class="cmd-text${isPs ? ' ps' : ''}">${escapeHtml(c.command_text)}</div></td>` +
+      `<td><div class="cmd-text ${shellClass}">${escapeHtml(c.command_text)}</div></td>` +
       `<td class="hide-mobile">${escapeHtml(c.description || '—')}</td>` +
       `<td class="hide-mobile"><span class="badge badge-parent">${escapeHtml(c.parent_category || '—')}</span></td>` +
       `<td><span class="badge badge-child">${escapeHtml(c.child_category || '—')}</span></td>` +
-      `<td><span class="badge ${isPs ? 'badge-ps' : 'badge-cmd'}">${escapeHtml(c.shell || 'CMD')}</span></td>` +
+      `<td><span class="badge ${badgeClass}">${escapeHtml(c.shell || 'CMD')}</span></td>` +
       `<td><button class="btn-copy outline" onclick="copyText(${JSON.stringify(c.command_text).replace(/"/g, '&quot;')})">复制</button></td>`;
 
     tbody.appendChild(tr);
@@ -575,7 +680,6 @@ function renderSoftware(list) {
   empty.style.display = 'none';
   count.textContent = `共 ${list.length} 个软件`;
 
-  // 按分类分组
   const groups = {};
   list.forEach(s => {
     const cat = s.category || '未分类';
@@ -619,6 +723,124 @@ function resetSwFilters() {
   $('sw-keyword').value = '';
   $('sw-platform').value = '';
   renderSoftware();
+}
+
+// ==================== 脚本工具 ====================
+function buildScriptFilters() {
+  // 构建分类下拉
+  const cats = [...new Set(allScripts.map(s => s.category).filter(Boolean))].sort();
+  const catSel = $('script-category');
+  catSel.innerHTML = '<option value="">全部分类</option>';
+  cats.forEach(c => {
+    const o = document.createElement('option');
+    o.value = c; o.textContent = c;
+    catSel.appendChild(o);
+  });
+
+  // 构建类型下拉
+  const types = [...new Set(allScripts.map(s => s.script_type).filter(Boolean))].sort();
+  const typeSel = $('script-type');
+  typeSel.innerHTML = '<option value="">全部类型</option>';
+  types.forEach(t => {
+    const o = document.createElement('option');
+    o.value = t; o.textContent = t;
+    typeSel.appendChild(o);
+  });
+}
+
+function filterScripts() {
+  const kw = $('script-keyword').value.trim().toLowerCase();
+  const cat = $('script-category').value;
+  const sType = $('script-type').value;
+  const terms = kw ? kw.replace(/[；;]/g, ' ').split(/\s+/).filter(Boolean) : [];
+
+  const filtered = allScripts.filter(s => {
+    if (cat && s.category !== cat) return false;
+    if (sType && s.script_type !== sType) return false;
+    if (terms.length) {
+      const haystack = [
+        s.name, s.category, s.script_type, s.description, s.dependencies, s.keywords
+      ].join(' ').toLowerCase();
+      return terms.every(t => haystack.includes(t));
+    }
+    return true;
+  });
+
+  renderScripts(filtered);
+}
+
+function renderScripts(list) {
+  if (!list) list = allScripts;
+  const container = $('script-content');
+  const empty = $('script-empty');
+  const count = $('script-count');
+  container.innerHTML = '';
+
+  if (list.length === 0) {
+    empty.style.display = '';
+    count.textContent = '';
+    return;
+  }
+  empty.style.display = 'none';
+  count.textContent = `共 ${list.length} 个脚本`;
+
+  // 按分类分组
+  const groups = {};
+  list.forEach(s => {
+    const cat = s.category || '未分类';
+    if (!groups[cat]) groups[cat] = [];
+    groups[cat].push(s);
+  });
+
+  Object.keys(groups).sort().forEach(cat => {
+    const div = document.createElement('div');
+    div.className = 'sw-category';
+    div.innerHTML = `<h3>${escapeHtml(cat)} <small style="font-weight:400;font-size:0.8rem;">(${groups[cat].length})</small></h3>`;
+
+    const grid = document.createElement('div');
+    grid.className = 'sw-grid';
+
+    groups[cat].forEach(s => {
+      const card = document.createElement('div');
+      card.className = 'sw-card';
+
+      const safeType = (s.script_type || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      const badgeClass = `badge-script-${safeType || 'default'}`;
+
+      // 动态生成依赖HTML，有才显示
+      let depHtml = '';
+      if (s.dependencies) {
+        const escapedDeps = escapeHtml(s.dependencies);
+        const jsonDeps = JSON.stringify(s.dependencies).replace(/"/g, '&quot;');
+        depHtml = `
+          <div class="sw-desc" style="color: #f59e0b; font-size: 0.75rem; display: flex; align-items: center; justify-content: space-between; margin-top: 0.2rem;">
+            <span style="word-break: break-all;">依赖: ${escapedDeps}</span>
+            <button class="btn-copy outline" style="padding: 0.1rem 0.4rem; font-size: 0.7rem; margin-left: 0.5rem; white-space: nowrap;" onclick="copyText(${jsonDeps})">复制</button>
+          </div>`;
+      }
+
+      card.innerHTML =
+        `<div class="sw-name">${escapeHtml(s.name)}</div>` +
+        `<div style="margin-bottom: 0.2rem;"><span class="badge ${badgeClass}">${escapeHtml(s.script_type || '未知')}</span></div>` +
+        depHtml +
+        (s.description ? `<div class="sw-desc">${escapeHtml(s.description)}</div>` : '') +
+        `<div class="sw-actions">` +
+        `<button class="sw-btn-download" onclick="downloadScript(${s.id})">下载脚本</button>` +
+        `</div>`;
+
+      grid.appendChild(card);
+    });
+
+    div.appendChild(grid);
+    container.appendChild(div);
+  });
+}
+
+function resetScriptFilters() {
+  $('script-keyword').value = '';
+  $('script-category').value = '';
+  $('script-type').value = '';
+  renderScripts();
 }
 
 // ==================== 启动 ====================
