@@ -100,6 +100,22 @@
     .badge-script-shell      { background: #f3e8ff; color: #6b21a8; }
     .badge-script-default    { background: #e2e8f0; color: #334155; }
 
+    /* ==================== 脚本平台 Badge 颜色 ==================== */
+    .badge-platform {
+      background: #e0f2fe;
+      color: #075985;
+      margin-left: 0.3rem;
+    }
+
+    /* 关键字列的样式 */
+    .kw-text {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 0.78rem;
+      color: #94a3b8;
+      word-break: break-all;
+      white-space: pre-wrap;
+    }
+
     .btn-copy {
       padding: 0.2rem 0.6rem;
       font-size: 0.8rem;
@@ -299,6 +315,7 @@
               <th style="width:50px;">ID</th>
               <th>命令</th>
               <th class="hide-mobile" style="min-width:120px;">描述</th>
+              <th class="hide-mobile" style="min-width:120px;">关键字</th>
               <th class="hide-mobile" style="width:90px;">平台</th>
               <th style="width:80px;">分类</th>
               <th style="width:70px;">Shell</th>
@@ -330,13 +347,16 @@
     <!-- ============ 脚本工具 ============ -->
     <section id="section-script" style="display:none;">
       <div class="toolbar">
-        <input type="search" id="script-keyword" placeholder="搜索脚本名 / 描述 / 依赖 / 关键字…"
+        <input type="search" id="script-keyword" placeholder="搜索脚本名 / 描述 / 依赖 / 关键字 / 平台…"
                oninput="filterScripts()">
         <select id="script-category" onchange="filterScripts()">
           <option value="">全部分类</option>
         </select>
         <select id="script-type" onchange="filterScripts()">
           <option value="">全部类型</option>
+        </select>
+        <select id="script-platform" onchange="filterScripts()">
+          <option value="">全部平台</option>
         </select>
         <button class="outline" onclick="resetScriptFilters()" style="padding:0.4rem 0.8rem;font-size:0.85rem;">重置</button>
       </div>
@@ -446,7 +466,7 @@ function downloadScript(id) {
 async function loadDatabase() {
   try {
     const SQL = await initSqlJs({
-      locateFile: file => './' + file 
+      locateFile: file => './' + file
     });
 
     const resp = await fetch(DB_FILE);
@@ -474,13 +494,13 @@ async function loadDatabase() {
       'id','name','url','description','category','platform'
     ]);
 
-    // 读取脚本表（新增 category 字段）
+    // 读取脚本表（含 category / platform 字段）
     const scriptRes = db.exec(
-      "SELECT id, name, category, script_type, content, description, dependencies, keywords " +
+      "SELECT id, name, category, script_type, content, description, dependencies, keywords, platform " +
       "FROM script_item ORDER BY category, script_type, id"
     );
     allScripts = rowsToObjects(scriptRes, [
-      'id','name','category','script_type','content','description','dependencies','keywords'
+      'id','name','category','script_type','content','description','dependencies','keywords','platform'
     ]);
 
     $('loading').style.display = 'none';
@@ -609,9 +629,9 @@ function renderCommands(list) {
 
   list.forEach(c => {
     const tr = document.createElement('tr');
-    
+
     const rawShell = (c.shell || 'CMD').toLowerCase();
-    const safeShell = rawShell.replace(/[^a-z0-9]/g, ''); 
+    const safeShell = rawShell.replace(/[^a-z0-9]/g, '');
     const shellClass = `shell-${safeShell}`;
     const badgeClass = `badge-shell-${safeShell}`;
 
@@ -619,6 +639,7 @@ function renderCommands(list) {
       `<td>${c.id}</td>` +
       `<td><div class="cmd-text ${shellClass}">${escapeHtml(c.command_text)}</div></td>` +
       `<td class="hide-mobile">${escapeHtml(c.description || '—')}</td>` +
+      `<td class="hide-mobile"><div class="kw-text">${escapeHtml(c.keywords || '—')}</div></td>` +
       `<td class="hide-mobile"><span class="badge badge-parent">${escapeHtml(c.parent_category || '—')}</span></td>` +
       `<td><span class="badge badge-child">${escapeHtml(c.child_category || '—')}</span></td>` +
       `<td><span class="badge ${badgeClass}">${escapeHtml(c.shell || 'CMD')}</span></td>` +
@@ -746,20 +767,33 @@ function buildScriptFilters() {
     o.value = t; o.textContent = t;
     typeSel.appendChild(o);
   });
+
+  // 构建平台下拉
+  const plats = [...new Set(allScripts.map(s => s.platform).filter(Boolean))].sort();
+  const platSel = $('script-platform');
+  platSel.innerHTML = '<option value="">全部平台</option>';
+  plats.forEach(p => {
+    const o = document.createElement('option');
+    o.value = p; o.textContent = p;
+    platSel.appendChild(o);
+  });
 }
 
 function filterScripts() {
   const kw = $('script-keyword').value.trim().toLowerCase();
   const cat = $('script-category').value;
   const sType = $('script-type').value;
+  const platform = $('script-platform').value;
   const terms = kw ? kw.replace(/[；;]/g, ' ').split(/\s+/).filter(Boolean) : [];
 
   const filtered = allScripts.filter(s => {
     if (cat && s.category !== cat) return false;
     if (sType && s.script_type !== sType) return false;
+    if (platform && s.platform !== platform) return false;
     if (terms.length) {
       const haystack = [
-        s.name, s.category, s.script_type, s.description, s.dependencies, s.keywords
+        s.name, s.category, s.script_type, s.description,
+        s.dependencies, s.keywords, s.platform
       ].join(' ').toLowerCase();
       return terms.every(t => haystack.includes(t));
     }
@@ -807,6 +841,12 @@ function renderScripts(list) {
       const safeType = (s.script_type || '').toLowerCase().replace(/[^a-z0-9]/g, '');
       const badgeClass = `badge-script-${safeType || 'default'}`;
 
+      // 类型徽章 + 平台徽章（同行显示）
+      let badgeHtml = `<span class="badge ${badgeClass}">${escapeHtml(s.script_type || '未知')}</span>`;
+      if (s.platform) {
+        badgeHtml += `<span class="badge badge-platform">${escapeHtml(s.platform)}</span>`;
+      }
+
       // 动态生成依赖HTML，有才显示
       let depHtml = '';
       if (s.dependencies) {
@@ -821,7 +861,7 @@ function renderScripts(list) {
 
       card.innerHTML =
         `<div class="sw-name">${escapeHtml(s.name)}</div>` +
-        `<div style="margin-bottom: 0.2rem;"><span class="badge ${badgeClass}">${escapeHtml(s.script_type || '未知')}</span></div>` +
+        `<div style="margin-bottom: 0.2rem;">${badgeHtml}</div>` +
         depHtml +
         (s.description ? `<div class="sw-desc">${escapeHtml(s.description)}</div>` : '') +
         `<div class="sw-actions">` +
@@ -840,6 +880,7 @@ function resetScriptFilters() {
   $('script-keyword').value = '';
   $('script-category').value = '';
   $('script-type').value = '';
+  $('script-platform').value = '';
   renderScripts();
 }
 
