@@ -107,15 +107,6 @@
       margin-left: 0.3rem;
     }
 
-    /* 关键字列的样式 */
-    .kw-text {
-      font-family: Consolas, "Courier New", monospace;
-      font-size: 0.78rem;
-      color: #94a3b8;
-      word-break: break-all;
-      white-space: pre-wrap;
-    }
-
     .btn-copy {
       padding: 0.2rem 0.6rem;
       font-size: 0.8rem;
@@ -315,7 +306,6 @@
               <th style="width:50px;">ID</th>
               <th>命令</th>
               <th class="hide-mobile" style="min-width:120px;">描述</th>
-              <th class="hide-mobile" style="min-width:120px;">关键字</th>
               <th class="hide-mobile" style="width:90px;">平台</th>
               <th style="width:80px;">分类</th>
               <th style="width:70px;">Shell</th>
@@ -474,7 +464,7 @@ async function loadDatabase() {
     const buffer = await resp.arrayBuffer();
     db = new SQL.Database(new Uint8Array(buffer));
 
-    // 读取命令表
+    // 读取命令表（keywords 仍读取，用于搜索匹配，但不展示）
     const cmdRes = db.exec(
       "SELECT id, command_text, description, keywords, " +
       "parent_category, child_category, shell FROM command_item " +
@@ -639,7 +629,6 @@ function renderCommands(list) {
       `<td>${c.id}</td>` +
       `<td><div class="cmd-text ${shellClass}">${escapeHtml(c.command_text)}</div></td>` +
       `<td class="hide-mobile">${escapeHtml(c.description || '—')}</td>` +
-      `<td class="hide-mobile"><div class="kw-text">${escapeHtml(c.keywords || '—')}</div></td>` +
       `<td class="hide-mobile"><span class="badge badge-parent">${escapeHtml(c.parent_category || '—')}</span></td>` +
       `<td><span class="badge badge-child">${escapeHtml(c.child_category || '—')}</span></td>` +
       `<td><span class="badge ${badgeClass}">${escapeHtml(c.shell || 'CMD')}</span></td>` +
