@@ -6,66 +6,43 @@
   <meta name="color-scheme" content="light dark">
   <title>快捷命令</title>
 
-  <!-- Pico.css -->
   <link rel="stylesheet" href="./pico.min.css">
-
-  <!-- sql.js -->
   <script src="./sql-wasm.js"></script>
 
-  <style>
-    :root {
-      --pico-font-size: 95%;
-    }
+  <!-- 尽早判断设备 -->
+  <script>
+    (function () {
+      var ua = navigator.userAgent || '';
+      var isMobile =
+        /Android|iPhone|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|CriOS|FxiOS|HarmonyOS/i.test(ua) ||
+        /iPad/.test(ua) ||
+        (navigator.maxTouchPoints > 1 && /Macintosh/.test(ua));
+      document.documentElement.classList.add(isMobile ? 'is-mobile' : 'is-desktop');
+    })();
+  </script>
 
-    body {
-      padding-bottom: env(safe-area-inset-bottom);
-    }
+  <style>
+    /* =========================================================
+       ============  桌面端（原版原样） ============
+       ========================================================= */
+    :root { --pico-font-size: 95%; }
+    body { padding-bottom: env(safe-area-inset-bottom); }
 
     .toolbar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      align-items: center;
-      margin-bottom: 1rem;
+      display: flex; flex-wrap: wrap; gap: 0.5rem;
+      align-items: center; margin-bottom: 1rem;
     }
+    .toolbar input[type="search"] { flex: 1 1 200px; margin-bottom: 0; }
+    .toolbar select { flex: 0 0 auto; width: auto; min-width: 100px; margin-bottom: 0; }
+    .toolbar button { flex: 0 0 auto; margin-bottom: 0; }
 
-    .toolbar input[type="search"] {
-      flex: 1 1 200px;
-      margin-bottom: 0;
-    }
-
-    .toolbar select {
-      flex: 0 0 auto;
-      width: auto;
-      min-width: 100px;
-      margin-bottom: 0;
-    }
-
-    .toolbar button {
-      flex: 0 0 auto;
-      margin-bottom: 0;
-    }
-
-    /* 命令速查表格 */
-    .cmd-table {
-      width: 100%;
-      font-size: 0.9rem;
-    }
-
-    .cmd-table th,
-    .cmd-table td {
-      padding: 0.5rem 0.6rem;
-      vertical-align: top;
-    }
+    .cmd-table { width: 100%; font-size: 0.9rem; }
+    .cmd-table th, .cmd-table td { padding: 0.5rem 0.6rem; vertical-align: top; }
 
     .cmd-text {
       font-family: Consolas, "Courier New", monospace;
-      font-size: 0.85rem;
-      word-break: break-all;
-      white-space: pre-wrap;
+      font-size: 0.85rem; word-break: break-all; white-space: pre-wrap;
     }
-
-    /* ==================== 各 Shell 命令文本颜色 ==================== */
     .cmd-text.shell-powershell { color: #8EC449; }
     .cmd-text.shell-cmd        { color: #FFFFFF; }
     .cmd-text.shell-bash       { color: #FF82FC; }
@@ -73,182 +50,194 @@
     .cmd-text.shell-windows    { color: #00E6FF; }
 
     .badge {
-      display: inline-block;
-      padding: 0.15rem 0.45rem;
-      border-radius: 4px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      white-space: nowrap;
+      display: inline-block; padding: 0.15rem 0.45rem; border-radius: 4px;
+      font-size: 0.75rem; font-weight: 600; white-space: nowrap;
     }
-
-    /* ==================== 各类别 Badge 颜色 ==================== */
     .badge-parent { background: #e0e7ff; color: #3730a3; }
     .badge-child  { background: #fce7f3; color: #9d174d; }
-
-    /* ==================== 各 Shell Badge 颜色 ==================== */
     .badge-shell-powershell { background: #ccfbf1; color: #0f766e; }
     .badge-shell-cmd        { background: #e2e8f0; color: #334155; }
     .badge-shell-bash       { background: #ffedd5; color: #9a3412; }
     .badge-shell-linux      { background: #f3e8ff; color: #6b21a8; }
     .badge-shell-windows    { background: #dbeafe; color: #1e40af; }
-
-    /* ==================== 脚本类型 Badge 颜色 ==================== */
     .badge-script-python     { background: #dbeafe; color: #1e40af; }
     .badge-script-powershell { background: #ccfbf1; color: #0f766e; }
     .badge-script-bat        { background: #fef3c7; color: #92400e; }
     .badge-script-vbs        { background: #fce7f3; color: #9d174d; }
     .badge-script-shell      { background: #f3e8ff; color: #6b21a8; }
     .badge-script-default    { background: #e2e8f0; color: #334155; }
+    .badge-platform { background: #e0f2fe; color: #075985; margin-left: 0.3rem; }
 
-    /* ==================== 脚本平台 Badge 颜色 ==================== */
-    .badge-platform {
-      background: #e0f2fe;
-      color: #075985;
-      margin-left: 0.3rem;
-    }
+    .btn-copy { padding: 0.2rem 0.6rem; font-size: 0.8rem; margin-bottom: 0; }
 
-    .btn-copy {
-      padding: 0.2rem 0.6rem;
-      font-size: 0.8rem;
-      margin-bottom: 0;
-    }
-
-    /* 软件链接 / 脚本卡片 */
-    .sw-category {
-      margin-bottom: 1.6rem;
-    }
-
+    .sw-category { margin-bottom: 1.6rem; }
     .sw-category > h3 {
-      margin-bottom: 0.6rem;
-      padding-bottom: 0.3rem;
-      border-bottom: 2px solid var(--pico-primary);
-      font-size: 1.05rem;
+      margin-bottom: 0.6rem; padding-bottom: 0.3rem;
+      border-bottom: 2px solid var(--pico-primary); font-size: 1.05rem;
     }
-
     .sw-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
       gap: 0.7rem;
     }
-
     .sw-card {
-      border: 1px solid var(--pico-muted-border-color);
-      border-radius: 8px;
-      padding: 0.75rem 0.85rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.25rem;
-      transition: box-shadow 0.15s;
+      border: 1px solid var(--pico-muted-border-color); border-radius: 8px;
+      padding: 0.75rem 0.85rem; display: flex; flex-direction: column;
+      gap: 0.25rem; transition: box-shadow 0.15s;
       background: var(--pico-card-background-color);
     }
-
-    .sw-card:hover {
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    }
-
-    .sw-card .sw-name {
-      font-weight: 700;
-      font-size: 0.95rem;
-      line-height: 1.3;
-    }
-
+    .sw-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .sw-card .sw-name { font-weight: 700; font-size: 0.95rem; line-height: 1.3; }
     .sw-card .sw-desc {
-      font-size: 0.8rem;
-      color: var(--pico-muted-color);
-      line-height: 1.35;
-      flex: 1;
+      font-size: 0.8rem; color: var(--pico-muted-color);
+      line-height: 1.35; flex: 1;
     }
-
-    .sw-card .sw-platform {
-      font-size: 0.75rem;
-      color: var(--pico-primary);
-      font-weight: 600;
-    }
-
-    .sw-card .sw-actions {
-      display: flex;
-      gap: 0.4rem;
-      margin-top: 0.3rem;
-    }
-
+    .sw-card .sw-platform { font-size: 0.75rem; color: var(--pico-primary); font-weight: 600; }
+    .sw-card .sw-actions { display: flex; gap: 0.4rem; margin-top: 0.3rem; }
     .sw-card .sw-actions a,
     .sw-card .sw-actions button {
-      flex: 1;
-      text-align: center;
-      padding: 0.3rem 0.4rem;
-      font-size: 0.8rem;
-      border-radius: 5px;
-      text-decoration: none;
-      margin-bottom: 0;
-      cursor: pointer;
-      border: none;
+      flex: 1; text-align: center; padding: 0.3rem 0.4rem; font-size: 0.8rem;
+      border-radius: 5px; text-decoration: none; margin-bottom: 0;
+      cursor: pointer; border: none;
     }
+    .sw-btn-open { background: var(--pico-primary); color: #fff; }
+    .sw-btn-copy { background: var(--pico-muted-border-color); color: var(--pico-color); }
+    .sw-btn-download { background: #10b981; color: #fff; }
 
-    .sw-btn-open {
-      background: var(--pico-primary);
-      color: #fff;
-    }
-
-    .sw-btn-copy {
-      background: var(--pico-muted-border-color);
-      color: var(--pico-color);
-    }
-
-    .sw-btn-download {
-      background: #10b981;
-      color: #fff;
-    }
-
-    /* 移动端适配 */
     @media (max-width: 576px) {
-      .cmd-table .hide-mobile {
-        display: none;
-      }
-
-      .sw-grid {
-        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-        gap: 0.5rem;
-      }
-
-      .sw-card {
-        padding: 0.6rem 0.7rem;
-      }
-
-      .toolbar select {
-        min-width: 80px;
-        font-size: 0.82rem;
-      }
+      .cmd-table .hide-mobile { display: none; }
+      .sw-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0.5rem; }
+      .sw-card { padding: 0.6rem 0.7rem; }
+      .toolbar select { min-width: 80px; font-size: 0.82rem; }
     }
 
-    .empty-tip {
-      text-align: center;
-      padding: 2rem 1rem;
-      color: var(--pico-muted-color);
-    }
-
-    .loading {
-      text-align: center;
-      padding: 3rem 1rem;
-    }
+    .empty-tip { text-align: center; padding: 2rem 1rem; color: var(--pico-muted-color); }
+    .loading { text-align: center; padding: 3rem 1rem; }
 
     .toast {
-      position: fixed;
-      bottom: 1.2rem;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #1e293b;
-      color: #fff;
-      padding: 0.55rem 1.1rem;
-      border-radius: 6px;
-      font-size: 0.85rem;
-      z-index: 999;
-      opacity: 0;
-      transition: opacity 0.25s;
-      pointer-events: none;
+      position: fixed; bottom: 1.2rem; left: 50%; transform: translateX(-50%);
+      background: #1e293b; color: #fff; padding: 0.55rem 1.1rem;
+      border-radius: 6px; font-size: 0.85rem; z-index: 999;
+      opacity: 0; transition: opacity 0.25s; pointer-events: none;
+    }
+    .toast.show { opacity: 1; }
+
+    /* =========================================================
+       ============  手机端（仅 html.is-mobile 生效） ============
+       ========================================================= */
+    html.is-mobile {
+      --pico-font-size: 100%;
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+    html.is-mobile body {
+      padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+    }
+    html.is-mobile main.container {
+      max-width: 100% !important;
+      width: 100%;
+      padding-left: max(0.4rem, env(safe-area-inset-left));
+      padding-right: max(0.4rem, env(safe-area-inset-right));
+    }
+    html.is-mobile nav ul li a {
+      font-size: 0.95rem;
+      padding: 0.35rem 0.3rem;
     }
 
-    .toast.show {
-      opacity: 1;
+    /* 工具栏 */
+    html.is-mobile .toolbar { gap: 0.35rem; margin-bottom: 0.6rem; }
+    html.is-mobile .toolbar input[type="search"] { flex: 1 1 100%; font-size: 0.95rem; }
+    html.is-mobile .toolbar select {
+      flex: 1 1 calc(50% - 0.2rem);
+      width: auto; min-width: 0; font-size: 0.85rem;
+    }
+    html.is-mobile .toolbar button {
+      flex: 1 1 calc(50% - 0.2rem);
+      font-size: 0.85rem;
+      padding: 0.4rem 0.4rem;
+    }
+
+    /* ==================== 命令速查：移动端三行堆叠 ==================== */
+    html.is-mobile .cmd-table thead { display: none; }
+    html.is-mobile .cmd-table { font-size: 0.8rem; border-collapse: collapse; }
+
+    html.is-mobile .cmd-table td.m-row {
+      display: table-cell;
+      padding: 0.55rem 0.35rem;
+    }
+
+    /* 第 1 行：命令 */
+    html.is-mobile .m-cmd-block { width: 100%; }
+    html.is-mobile .m-cmd-block .cmd-text {
+      font-size: 0.82rem;
+      line-height: 1.4;
+    }
+
+    /* 第 2 行：描述 */
+    html.is-mobile .m-desc {
+      font-size: 0.7rem;
+      color: var(--pico-muted-color);
+      line-height: 1.35;
+      margin-top: 0.18rem;
+      word-break: break-word;
+    }
+
+    /* 第 3 行：平台 / 分类 / Shell / 复制 同一行 */
+    html.is-mobile .m-meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.28rem;
+      margin-top: 0.35rem;
+    }
+    html.is-mobile .m-meta-row .badge {
+      font-size: 0.6rem;
+      padding: 0.1rem 0.32rem;
+    }
+    html.is-mobile .m-meta-row .btn-copy {
+      font-size: 0.65rem;
+      padding: 0.22rem 0.5rem;
+      margin-left: auto; /* 复制按钮靠最右 */
+    }
+
+    /* ==================== 卡片：一行 2 个 ==================== */
+    html.is-mobile .sw-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.4rem;
+    }
+    html.is-mobile .sw-card {
+      padding: 0.5rem 0.55rem;
+      gap: 0.15rem;
+    }
+    html.is-mobile .sw-category { margin-bottom: 1rem; }
+    html.is-mobile .sw-category > h3 {
+      font-size: 0.95rem;
+      margin-bottom: 0.4rem;
+    }
+    html.is-mobile .sw-card .sw-name { font-size: 0.85rem; }
+    html.is-mobile .sw-card .sw-desc { font-size: 0.7rem; line-height: 1.3; }
+    html.is-mobile .sw-card .sw-platform { font-size: 0.68rem; }
+    html.is-mobile .sw-card .sw-actions a,
+    html.is-mobile .sw-card .sw-actions button {
+      font-size: 0.7rem;
+      padding: 0.28rem 0.22rem;
+    }
+    html.is-mobile .sw-card .sw-desc[style] {
+      font-size: 0.68rem !important;
+    }
+
+    /* 计数 */
+    html.is-mobile #cmd-count,
+    html.is-mobile #sw-count,
+    html.is-mobile #script-count {
+      font-size: 0.78rem;
+    }
+
+    /* toast */
+    html.is-mobile .toast {
+      bottom: calc(1rem + env(safe-area-inset-bottom));
+      font-size: 0.82rem;
+      max-width: 90vw;
+      text-align: center;
     }
   </style>
 </head>
@@ -299,7 +288,7 @@
 
       <div id="cmd-count" style="font-size:0.85rem;color:var(--pico-muted-color);margin-bottom:0.5rem;"></div>
 
-      <div style="overflow-x:auto;">
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
         <table class="cmd-table">
           <thead>
             <tr>
@@ -366,9 +355,11 @@
 let db = null;
 let allCommands = [];
 let allSoftware = [];
-let allScripts = []; // 存放脚本数据，方便下载时提取内容
+let allScripts = [];
 
 const DB_FILE = 'commands.db';
+
+const IS_MOBILE = document.documentElement.classList.contains('is-mobile');
 
 // ==================== 工具函数 ====================
 function $(id) { return document.getElementById(id); }
@@ -422,20 +413,13 @@ function downloadScript(id) {
 
   let content = script.content == null ? '' : String(script.content);
 
-  // ---------- 1. 归一化换行符 ----------
-  // Windows 原生脚本(PowerShell / bat / vbs)以及 .py 用 CRLF；
-  // Linux Shell 脚本用 LF（否则 shebang 后可能出问题）。
-  // 先把已有的 \r\n、单独的 \r、单独的 \n 全部统一，再按目标替换。
   const useCRLF = ['.ps1', '.bat', '.cmd', '.vbs', '.py'].includes(ext);
   content = content.replace(/\r\n|\r|\n/g, useCRLF ? '\r\n' : '\n');
 
-  // ---------- 2. 去掉已有 BOM，避免重复 ----------
   if (content.charCodeAt(0) === 0xFEFF) {
     content = content.slice(1);
   }
 
-  // ---------- 3. 仅 .ps1 追加 UTF-8 BOM ----------
-  // Windows PowerShell 5.1 对无 BOM 的 .ps1 会按系统 ANSI(GBK) 解码，中文必乱。
   if (ext === '.ps1') {
     content = '\uFEFF' + content;
   }
@@ -455,16 +439,13 @@ function downloadScript(id) {
 // ==================== 加载数据库 ====================
 async function loadDatabase() {
   try {
-    const SQL = await initSqlJs({
-      locateFile: file => './' + file
-    });
+    const SQL = await initSqlJs({ locateFile: file => './' + file });
 
     const resp = await fetch(DB_FILE);
     if (!resp.ok) throw new Error('无法加载 ' + DB_FILE + '（HTTP ' + resp.status + '）');
     const buffer = await resp.arrayBuffer();
     db = new SQL.Database(new Uint8Array(buffer));
 
-    // 读取命令表（keywords 仍读取，用于搜索匹配，但不展示）
     const cmdRes = db.exec(
       "SELECT id, command_text, description, keywords, " +
       "parent_category, child_category, shell FROM command_item " +
@@ -475,7 +456,6 @@ async function loadDatabase() {
       'parent_category','child_category','shell'
     ]);
 
-    // 读取软件表
     const swRes = db.exec(
       "SELECT id, name, url, description, category, platform " +
       "FROM software_item ORDER BY category, platform, name"
@@ -484,7 +464,6 @@ async function loadDatabase() {
       'id','name','url','description','category','platform'
     ]);
 
-    // 读取脚本表（含 category / platform 字段）
     const scriptRes = db.exec(
       "SELECT id, name, category, script_type, content, description, dependencies, keywords, platform " +
       "FROM script_item ORDER BY category, script_type, id"
@@ -624,15 +603,34 @@ function renderCommands(list) {
     const safeShell = rawShell.replace(/[^a-z0-9]/g, '');
     const shellClass = `shell-${safeShell}`;
     const badgeClass = `badge-shell-${safeShell}`;
+    const cmdJsonSafe = JSON.stringify(c.command_text).replace(/"/g, '&quot;');
 
-    tr.innerHTML =
-      `<td>${c.id}</td>` +
-      `<td><div class="cmd-text ${shellClass}">${escapeHtml(c.command_text)}</div></td>` +
-      `<td class="hide-mobile">${escapeHtml(c.description || '—')}</td>` +
-      `<td class="hide-mobile"><span class="badge badge-parent">${escapeHtml(c.parent_category || '—')}</span></td>` +
-      `<td><span class="badge badge-child">${escapeHtml(c.child_category || '—')}</span></td>` +
-      `<td><span class="badge ${badgeClass}">${escapeHtml(c.shell || 'CMD')}</span></td>` +
-      `<td><button class="btn-copy outline" onclick="copyText(${JSON.stringify(c.command_text).replace(/"/g, '&quot;')})">复制</button></td>`;
+    if (IS_MOBILE) {
+      // ---- 移动端：三行堆叠（命令 / 描述 / 徽章行） ----
+      tr.innerHTML =
+        `<td colspan="7" class="m-row">
+           <div class="m-cmd-block">
+             <div class="cmd-text ${shellClass}">${escapeHtml(c.command_text)}</div>
+             <div class="m-desc">${escapeHtml(c.description || '—')}</div>
+             <div class="m-meta-row">
+               <span class="badge badge-parent">${escapeHtml(c.parent_category || '—')}</span>
+               <span class="badge badge-child">${escapeHtml(c.child_category || '—')}</span>
+               <span class="badge ${badgeClass}">${escapeHtml(c.shell || 'CMD')}</span>
+               <button class="btn-copy outline" onclick="copyText(${cmdJsonSafe})">复制</button>
+             </div>
+           </div>
+         </td>`;
+    } else {
+      // ---- 桌面端：原 7 列布局 ----
+      tr.innerHTML =
+        `<td>${c.id}</td>` +
+        `<td><div class="cmd-text ${shellClass}">${escapeHtml(c.command_text)}</div></td>` +
+        `<td class="hide-mobile">${escapeHtml(c.description || '—')}</td>` +
+        `<td class="hide-mobile"><span class="badge badge-parent">${escapeHtml(c.parent_category || '—')}</span></td>` +
+        `<td><span class="badge badge-child">${escapeHtml(c.child_category || '—')}</span></td>` +
+        `<td><span class="badge ${badgeClass}">${escapeHtml(c.shell || 'CMD')}</span></td>` +
+        `<td><button class="btn-copy outline" onclick="copyText(${cmdJsonSafe})">复制</button></td>`;
+    }
 
     tbody.appendChild(tr);
   });
@@ -737,7 +735,6 @@ function resetSwFilters() {
 
 // ==================== 脚本工具 ====================
 function buildScriptFilters() {
-  // 构建分类下拉
   const cats = [...new Set(allScripts.map(s => s.category).filter(Boolean))].sort();
   const catSel = $('script-category');
   catSel.innerHTML = '<option value="">全部分类</option>';
@@ -747,7 +744,6 @@ function buildScriptFilters() {
     catSel.appendChild(o);
   });
 
-  // 构建类型下拉
   const types = [...new Set(allScripts.map(s => s.script_type).filter(Boolean))].sort();
   const typeSel = $('script-type');
   typeSel.innerHTML = '<option value="">全部类型</option>';
@@ -757,7 +753,6 @@ function buildScriptFilters() {
     typeSel.appendChild(o);
   });
 
-  // 构建平台下拉
   const plats = [...new Set(allScripts.map(s => s.platform).filter(Boolean))].sort();
   const platSel = $('script-platform');
   platSel.innerHTML = '<option value="">全部平台</option>';
@@ -807,7 +802,6 @@ function renderScripts(list) {
   empty.style.display = 'none';
   count.textContent = `共 ${list.length} 个脚本`;
 
-  // 按分类分组
   const groups = {};
   list.forEach(s => {
     const cat = s.category || '未分类';
@@ -830,13 +824,11 @@ function renderScripts(list) {
       const safeType = (s.script_type || '').toLowerCase().replace(/[^a-z0-9]/g, '');
       const badgeClass = `badge-script-${safeType || 'default'}`;
 
-      // 类型徽章 + 平台徽章（同行显示）
       let badgeHtml = `<span class="badge ${badgeClass}">${escapeHtml(s.script_type || '未知')}</span>`;
       if (s.platform) {
         badgeHtml += `<span class="badge badge-platform">${escapeHtml(s.platform)}</span>`;
       }
 
-      // 动态生成依赖HTML，有才显示
       let depHtml = '';
       if (s.dependencies) {
         const escapedDeps = escapeHtml(s.dependencies);
