@@ -3,10 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="color-scheme" content="light dark">
+  <meta name="color-scheme" content="dark">
   <title>快捷命令</title>
 
-  <link rel="stylesheet" href="./pico.min.css">
   <script src="./sql-wasm.js"></script>
 
   <!-- 尽早判断设备 -->
@@ -23,16 +22,378 @@
 
   <style>
     /* =========================================================
-       ============  桌面端（原版原样） ============
+       ============  基础重置 + 深色主题变量  ============
        ========================================================= */
-    :root { --pico-font-size: 95%; }
+    *, *::before, *::after { box-sizing: border-box; }
+
+    :root {
+      --pico-font-size: 95%;
+
+      --pico-font-family-emoji: "Apple Color Emoji", "Segoe UI Emoji",
+                                "Segoe UI Symbol", "Noto Color Emoji";
+      --pico-font-family-sans-serif: system-ui, "Segoe UI", Roboto, Oxygen, Ubuntu,
+                                     Cantarell, Helvetica, Arial, "Helvetica Neue",
+                                     sans-serif, var(--pico-font-family-emoji);
+      --pico-font-family-monospace: ui-monospace, SFMono-Regular, "SF Mono", Menlo,
+                                    Consolas, "Liberation Mono", monospace,
+                                    var(--pico-font-family-emoji);
+      --pico-font-family: var(--pico-font-family-sans-serif);
+      --pico-line-height: 1.5;
+
+      --pico-spacing: 1rem;
+      --pico-border-radius: 0.25rem;
+      --pico-border-width: 0.0625rem;
+      --pico-transition: 0.2s ease-in-out;
+
+      --pico-background-color: #131720;
+      --pico-color: #c2c7d0;
+      --pico-muted-color: #7b8495;
+      --pico-muted-border-color: #202632;
+
+      --pico-primary: #01aaff;
+      --pico-primary-background: #0172ad;
+      --pico-primary-border: #0172ad;
+      --pico-primary-hover: #79c0ff;
+      --pico-primary-hover-background: #017fc0;
+      --pico-primary-hover-border: #017fc0;
+      --pico-primary-inverse: #fff;
+      --pico-primary-focus: rgba(1, 170, 255, 0.375);
+
+      --pico-card-background-color: #181c25;
+
+      --pico-code-background-color: #1a1f29;
+      --pico-code-color: #8891a4;
+
+      --pico-form-element-spacing-vertical: 0.75rem;
+      --pico-form-element-spacing-horizontal: 1rem;
+      --pico-form-element-background-color: #1c212b;
+      --pico-form-element-border-color: #2a3140;
+      --pico-form-element-color: #e0e3e7;
+      --pico-form-element-placeholder-color: #8891a4;
+      --pico-form-element-active-background-color: #1a1f29;
+      --pico-form-element-active-border-color: #0172ad;
+      --pico-form-element-focus-color: #0172ad;
+
+      --pico-table-border-color: #202632;
+
+      color-scheme: dark;
+    }
+
+    html {
+      -webkit-tap-highlight-color: transparent;
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+      font-size: var(--pico-font-size);
+      font-family: var(--pico-font-family);
+      font-weight: 400;
+      line-height: var(--pico-line-height);
+      color: var(--pico-color);
+      background-color: var(--pico-background-color);
+      text-rendering: optimizeLegibility;
+      overflow-wrap: break-word;
+      tab-size: 4;
+    }
+
+    body {
+      width: 100%;
+      margin: 0;
+      color: var(--pico-color);
+      background-color: var(--pico-background-color);
+      font-family: inherit;
+      font-size: inherit;
+      line-height: inherit;
+    }
+
+    main { display: block; }
+    body > main { padding-block: var(--pico-spacing); }
+    section { margin-bottom: var(--pico-spacing); }
+    [hidden], template { display: none !important; }
+
+    /* ---- 容器 ---- */
+    .container {
+      width: 100%;
+      margin-right: auto;
+      margin-left: auto;
+      padding-right: var(--pico-spacing);
+      padding-left: var(--pico-spacing);
+    }
+    @media (min-width: 576px) {
+      .container { max-width: 510px; padding-right: 0; padding-left: 0; }
+    }
+    @media (min-width: 768px)  { .container { max-width: 700px; } }
+    @media (min-width: 1024px) { .container { max-width: 950px; } }
+    @media (min-width: 1280px) { .container { max-width: 1200px; } }
+    @media (min-width: 1536px) { .container { max-width: 1450px; } }
+
+    /* ---- 文字 ---- */
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 0;
+      margin-bottom: var(--pico-spacing);
+      color: var(--pico-color);
+      font-weight: 700;
+      line-height: 1.2;
+    }
+    h1 { font-size: 2rem; }
+    h2 { font-size: 1.75rem; }
+    h3 { font-size: 1.5rem; }
+    h4 { font-size: 1.25rem; }
+    h5 { font-size: 1.125rem; }
+    h6 { font-size: 1rem; }
+
+    p {
+      margin-top: 0;
+      margin-bottom: var(--pico-spacing);
+      color: var(--pico-color);
+      font-weight: 400;
+    }
+    small { font-size: 0.875em; }
+    b, strong { font-weight: bolder; }
+
+    hr {
+      height: 0;
+      margin: var(--pico-spacing) 0;
+      border: 0;
+      border-top: 1px solid var(--pico-muted-border-color);
+    }
+
+    a {
+      color: var(--pico-primary);
+      text-decoration: underline;
+      text-underline-offset: 0.125em;
+      transition: color var(--pico-transition);
+    }
+    a:hover, a:focus { color: var(--pico-primary-hover); }
+
+    code, kbd, pre, samp {
+      font-family: var(--pico-font-family-monospace);
+      font-size: 0.875em;
+      line-height: initial;
+      border-radius: var(--pico-border-radius);
+      background: var(--pico-code-background-color);
+      color: var(--pico-code-color);
+    }
+    code, kbd, samp { display: inline-block; padding: 0.375rem; }
+    pre { display: block; margin-bottom: var(--pico-spacing); overflow-x: auto; }
+
+    /* ---- 导航 ---- */
+    nav, nav ul { display: flex; }
+    nav { justify-content: space-between; overflow: visible; }
+    nav ul { align-items: center; margin-bottom: 0; padding: 0; list-style: none; }
+    nav ul:first-of-type { margin-left: -0.5rem; }
+    nav ul:last-of-type  { margin-right: -0.5rem; }
+    nav li {
+      display: inline-block;
+      margin: 0;
+      padding: 1rem 0.5rem;
+      list-style: none;
+    }
+    nav li a {
+      display: inline-block;
+      margin: -0.5rem -0.5rem;
+      padding: 0.5rem 0.5rem;
+      border-radius: var(--pico-border-radius);
+      color: var(--pico-primary);
+      text-decoration: none;
+      transition: color var(--pico-transition), background-color var(--pico-transition);
+    }
+    nav li a:hover,
+    nav li a:focus { color: var(--pico-primary-hover); }
+    nav li a.active {
+      color: var(--pico-primary);
+      background-color: rgba(1, 170, 255, 0.14);
+      font-weight: 600;
+    }
+
+    /* ---- 表单元素 ---- */
+    input, optgroup, select, textarea, button {
+      margin: 0;
+      font-size: 1rem;
+      line-height: var(--pico-line-height);
+      font-family: inherit;
+      letter-spacing: inherit;
+    }
+
+    input:not([type=checkbox],[type=radio],[type=range],[type=file]),
+    select,
+    textarea {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      padding: var(--pico-form-element-spacing-vertical) var(--pico-form-element-spacing-horizontal);
+      border: var(--pico-border-width) solid var(--pico-form-element-border-color);
+      border-radius: var(--pico-border-radius);
+      outline: 0;
+      background-color: var(--pico-form-element-background-color);
+      color: var(--pico-form-element-color);
+      font-weight: 400;
+      transition: background-color var(--pico-transition),
+                  border-color var(--pico-transition),
+                  box-shadow var(--pico-transition);
+    }
+
+    input:not([type=checkbox],[type=radio],[type=range],[type=file]):focus,
+    select:focus,
+    textarea:focus {
+      background-color: var(--pico-form-element-active-background-color);
+      border-color: var(--pico-form-element-active-border-color);
+      box-shadow: 0 0 0 0.125rem var(--pico-primary-focus);
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: var(--pico-form-element-placeholder-color);
+      opacity: 1;
+    }
+
+    /* 搜索框：圆角 + 纯 CSS 放大镜图标 */
+    input[type=search] {
+      border-radius: 5rem;
+      -webkit-appearance: textfield;
+      padding-left: calc(var(--pico-form-element-spacing-horizontal) + 1.75rem);
+    }
+    input[type=search]::-webkit-search-decoration { -webkit-appearance: none; }
+
+    /* 搜索框包裹层：CSS 绘制放大镜 */
+    .search-wrapper {
+      position: relative;
+      display: block;
+      flex: 1 1 200px;
+      min-width: 0;
+    }
+    .search-wrapper::before {
+      content: "";
+      position: absolute;
+      left: calc(var(--pico-form-element-spacing-horizontal) + 0.125rem);
+      top: 50%;
+      width: 0.7rem;
+      height: 0.7rem;
+      margin-top: -0.55rem;
+      border: 1.5px solid var(--pico-form-element-placeholder-color);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .search-wrapper::after {
+      content: "";
+      position: absolute;
+      left: calc(var(--pico-form-element-spacing-horizontal) + 0.72rem);
+      top: 50%;
+      width: 0.42rem;
+      height: 0;
+      margin-top: 0.22rem;
+      border-top: 1.5px solid var(--pico-form-element-placeholder-color);
+      transform: rotate(45deg);
+      transform-origin: left center;
+      pointer-events: none;
+    }
+    .search-wrapper input[type=search] { width: 100%; margin-bottom: 0; }
+
+    /* 下拉框箭头：纯 CSS 三角 */
+    select:not([multiple], [size]) {
+      padding-right: calc(var(--pico-form-element-spacing-horizontal) + 1.5rem);
+      background-image:
+        linear-gradient(45deg, transparent 50%, var(--pico-form-element-placeholder-color) 50%),
+        linear-gradient(135deg, var(--pico-form-element-placeholder-color) 50%, transparent 50%);
+      background-position:
+        calc(100% - 1.05rem) calc(50% + 0.05rem),
+        calc(100% - 0.75rem) calc(50% + 0.05rem);
+      background-size: 0.3rem 0.3rem, 0.3rem 0.3rem;
+      background-repeat: no-repeat;
+    }
+    select::-ms-expand { display: none; }
+
+    /* ---- 按钮 ---- */
+    button,
+    [type=button],
+    [type=reset],
+    [type=submit] {
+      -webkit-appearance: none;
+      appearance: none;
+      display: inline-block;
+      padding: var(--pico-form-element-spacing-vertical) var(--pico-form-element-spacing-horizontal);
+      border: var(--pico-border-width) solid var(--pico-primary-border);
+      border-radius: var(--pico-border-radius);
+      outline: 0;
+      background-color: var(--pico-primary-background);
+      color: var(--pico-primary-inverse);
+      font-weight: 400;
+      font-size: 1rem;
+      line-height: var(--pico-line-height);
+      text-align: center;
+      text-decoration: none;
+      white-space: nowrap;
+      cursor: pointer;
+      -webkit-user-select: none;
+      user-select: none;
+      transition: background-color var(--pico-transition),
+                  border-color var(--pico-transition),
+                  color var(--pico-transition),
+                  box-shadow var(--pico-transition);
+    }
+    button:hover,
+    button:active,
+    [type=button]:hover,
+    [type=reset]:hover,
+    [type=submit]:hover {
+      background-color: var(--pico-primary-hover-background);
+      border-color: var(--pico-primary-hover-border);
+      color: var(--pico-primary-inverse);
+    }
+    button:focus,
+    [type=button]:focus,
+    [type=reset]:focus,
+    [type=submit]:focus {
+      box-shadow: 0 0 0 0.125rem var(--pico-primary-focus);
+    }
+    button[disabled] { opacity: 0.5; pointer-events: none; }
+
+    button.outline,
+    [type=button].outline,
+    [type=reset].outline,
+    [type=submit].outline {
+      background-color: transparent;
+      color: var(--pico-primary);
+      border-color: var(--pico-primary);
+    }
+    button.outline:hover,
+    button.outline:active,
+    button.outline:focus,
+    [type=button].outline:hover,
+    [type=reset].outline:hover,
+    [type=submit].outline:hover {
+      background-color: transparent;
+      color: var(--pico-primary-hover);
+      border-color: var(--pico-primary-hover);
+    }
+
+    /* ---- 表格 ---- */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border-spacing: 0;
+      text-indent: 0;
+    }
+    td, th {
+      padding: calc(var(--pico-spacing) / 2) var(--pico-spacing);
+      border-bottom: var(--pico-border-width) solid var(--pico-table-border-color);
+      background-color: transparent;
+      color: var(--pico-color);
+      font-weight: 400;
+      text-align: left;
+    }
+    thead td, thead th {
+      font-weight: 600;
+      border-bottom-width: 0.1875rem;
+    }
+
+    /* =========================================================
+       ============  桌面端布局  ============
+       ========================================================= */
     body { padding-bottom: env(safe-area-inset-bottom); }
 
     .toolbar {
       display: flex; flex-wrap: wrap; gap: 0.5rem;
       align-items: center; margin-bottom: 1rem;
     }
-    .toolbar input[type="search"] { flex: 1 1 200px; margin-bottom: 0; }
     .toolbar select { flex: 0 0 auto; width: auto; min-width: 100px; margin-bottom: 0; }
     .toolbar button { flex: 0 0 auto; margin-bottom: 0; }
 
@@ -145,7 +506,8 @@
 
     /* 工具栏 */
     html.is-mobile .toolbar { gap: 0.35rem; margin-bottom: 0.6rem; }
-    html.is-mobile .toolbar input[type="search"] { flex: 1 1 100%; font-size: 0.95rem; }
+    html.is-mobile .search-wrapper { flex: 1 1 100%; }
+    html.is-mobile .toolbar input[type="search"] { font-size: 0.95rem; }
     html.is-mobile .toolbar select {
       flex: 1 1 calc(50% - 0.2rem);
       width: auto; min-width: 0; font-size: 0.85rem;
@@ -165,14 +527,12 @@
       padding: 0.55rem 0.35rem;
     }
 
-    /* 第 1 行：命令 */
     html.is-mobile .m-cmd-block { width: 100%; }
     html.is-mobile .m-cmd-block .cmd-text {
       font-size: 0.82rem;
       line-height: 1.4;
     }
 
-    /* 第 2 行：描述 */
     html.is-mobile .m-desc {
       font-size: 0.7rem;
       color: var(--pico-muted-color);
@@ -181,7 +541,6 @@
       word-break: break-word;
     }
 
-    /* 第 3 行：平台 / 分类 / Shell / 复制 同一行 */
     html.is-mobile .m-meta-row {
       display: flex;
       flex-wrap: wrap;
@@ -196,7 +555,7 @@
     html.is-mobile .m-meta-row .btn-copy {
       font-size: 0.65rem;
       padding: 0.22rem 0.5rem;
-      margin-left: auto; /* 复制按钮靠最右 */
+      margin-left: auto;
     }
 
     /* ==================== 卡片：一行 2 个 ==================== */
@@ -225,14 +584,12 @@
       font-size: 0.68rem !important;
     }
 
-    /* 计数 */
     html.is-mobile #cmd-count,
     html.is-mobile #sw-count,
     html.is-mobile #script-count {
       font-size: 0.78rem;
     }
 
-    /* toast */
     html.is-mobile .toast {
       bottom: calc(1rem + env(safe-area-inset-bottom));
       font-size: 0.82rem;
@@ -267,8 +624,10 @@
     <!-- ============ 命令速查 ============ -->
     <section id="section-cmd">
       <div class="toolbar">
-        <input type="search" id="cmd-keyword" placeholder="输入关键字搜索命令…"
-               oninput="filterCommands()">
+        <div class="search-wrapper">
+          <input type="search" id="cmd-keyword" placeholder="输入关键字搜索命令…"
+                 oninput="filterCommands()">
+        </div>
         <select id="cmd-parent" onchange="onParentChange()">
           <option value="">全部平台</option>
         </select>
@@ -310,8 +669,10 @@
     <!-- ============ 软件链接 ============ -->
     <section id="section-sw" style="display:none;">
       <div class="toolbar">
-        <input type="search" id="sw-keyword" placeholder="搜索软件名 / 描述 / 链接…"
-               oninput="filterSoftware()">
+        <div class="search-wrapper">
+          <input type="search" id="sw-keyword" placeholder="搜索软件名 / 描述 / 链接…"
+                 oninput="filterSoftware()">
+        </div>
         <select id="sw-platform" onchange="filterSoftware()">
           <option value="">全部平台</option>
         </select>
@@ -326,8 +687,10 @@
     <!-- ============ 脚本工具 ============ -->
     <section id="section-script" style="display:none;">
       <div class="toolbar">
-        <input type="search" id="script-keyword" placeholder="搜索脚本名 / 描述 / 依赖 / 关键字 / 平台…"
-               oninput="filterScripts()">
+        <div class="search-wrapper">
+          <input type="search" id="script-keyword" placeholder="搜索脚本名 / 描述 / 依赖 / 关键字 / 平台…"
+                 oninput="filterScripts()">
+        </div>
         <select id="script-category" onchange="filterScripts()">
           <option value="">全部分类</option>
         </select>
@@ -606,7 +969,6 @@ function renderCommands(list) {
     const cmdJsonSafe = JSON.stringify(c.command_text).replace(/"/g, '&quot;');
 
     if (IS_MOBILE) {
-      // ---- 移动端：三行堆叠（命令 / 描述 / 徽章行） ----
       tr.innerHTML =
         `<td colspan="7" class="m-row">
            <div class="m-cmd-block">
@@ -621,7 +983,6 @@ function renderCommands(list) {
            </div>
          </td>`;
     } else {
-      // ---- 桌面端：原 7 列布局 ----
       tr.innerHTML =
         `<td>${c.id}</td>` +
         `<td><div class="cmd-text ${shellClass}">${escapeHtml(c.command_text)}</div></td>` +
