@@ -22,7 +22,7 @@
 
 <style>
   /* ============================================================
-     1. 深色主题变量（取自 asd.html）
+     1. 深色主题变量
      ============================================================ */
   :root {
     --bg: #0b1220;
@@ -290,11 +290,11 @@
     color: var(--text-soft);
   }
 
-  .cmd-text.shell-powershell { color: #8EC449; }
-  .cmd-text.shell-cmd        { color: #E2E8F0; }
+  .cmd-text.shell-powershell { color: #00E6FF; }
+  .cmd-text.shell-cmd        { color: #36E33D; }
   .cmd-text.shell-bash       { color: #FF82FC; }
   .cmd-text.shell-linux      { color: #E0D846; }
-  .cmd-text.shell-windows    { color: #00E6FF; }
+  .cmd-text.shell-devtools    { color: #E8AE46; }
 
   /* ============================================================
      7. 徽章
@@ -310,18 +310,18 @@
   .badge-parent { background: rgba(96, 165, 250, .16);  color: #93c5fd; }
   .badge-child  { background: rgba(244, 114, 182, .16); color: #f9a8d4; }
 
-  .badge-shell-powershell { background: rgba(74, 222, 128, .16);  color: #86efac; }
-  .badge-shell-cmd        { background: rgba(148, 163, 184, .18); color: #cbd5e1; }
-  .badge-shell-bash       { background: rgba(251, 146, 60, .16);  color: #fdba74; }
+  .badge-shell-powershell { background: rgba(74, 222, 128, .16);  color: #00E6FF; }
+  .badge-shell-cmd        { background: rgba(148, 163, 184, .18); color: #36E33D; }
+  .badge-shell-bash       { background: rgba(251, 146, 60, .16);  color: #FF82FC; }
   .badge-shell-linux      { background: rgba(192, 132, 252, .16); color: #d8b4fe; }
-  .badge-shell-windows    { background: rgba(56, 189, 248, .16);  color: #7dd3fc; }
-  .badge-shell-all    { background: rgba(56, 189, 248, .16);  color: #F5DA6E; }
+  .badge-shell-devtools    { background: rgba(56, 189, 248, .16);  color: #E8AE46; }
 
   .badge-script-python     { background: rgba(56, 189, 248, .16);  color: #7dd3fc; }
   .badge-script-powershell { background: rgba(74, 222, 128, .16);  color: #86efac; }
   .badge-script-bat        { background: rgba(250, 204, 21, .16);  color: #fde047; }
   .badge-script-vbs        { background: rgba(244, 114, 182, .16); color: #f9a8d4; }
   .badge-script-shell      { background: rgba(192, 132, 252, .16); color: #d8b4fe; }
+  .badge-script-html       { background: rgba(251, 146, 60, .16);  color: #fdba74; }
   .badge-script-default    { background: rgba(148, 163, 184, .18); color: #cbd5e1; }
   .badge-platform          { background: rgba(56, 189, 248, .12);  color: #7dd3fc; margin-left: .3rem; }
 
@@ -341,15 +341,15 @@
 
   .sw-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
-    gap: .75rem;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: .6rem;
   }
 
   .sw-card {
     display: flex;
     flex-direction: column;
-    gap: .3rem;
-    padding: .85rem .95rem;
+    gap: .25rem;
+    padding: .7rem .8rem;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 12px;
@@ -357,18 +357,38 @@
   }
   .sw-card:hover { border-color: var(--primary); }
 
-  .sw-card .sw-name { font-weight: 700; font-size: .93rem; line-height: 1.35; }
-  .sw-card .sw-desc { flex: 1; font-size: .78rem; line-height: 1.45; color: var(--text-muted); }
-  .sw-card .sw-platform { font-size: .74rem; font-weight: 600; color: var(--primary); }
+  /* 名称 + 平台徽章同一行 */
+  .sw-card .sw-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .4rem;
+  }
+  .sw-card .sw-name {
+    font-weight: 700;
+    font-size: .9rem;
+    line-height: 1.35;
+    min-width: 0;
+  }
+  .sw-card .sw-head .sw-name { flex: 1 1 auto; }
+  .sw-card .sw-platform-badge {
+    flex: 0 0 auto;
+    margin-left: 0;
+    padding: .08rem .4rem;
+    font-size: .66rem;
+  }
 
-  .sw-card .sw-actions { display: flex; gap: .4rem; margin-top: .35rem; }
+  .sw-card .sw-desc { flex: 1; font-size: .76rem; line-height: 1.45; color: var(--text-muted); }
+  .sw-card .sw-platform { font-size: .72rem; font-weight: 600; color: var(--primary); }
+
+  .sw-card .sw-actions { display: flex; gap: .4rem; margin-top: .3rem; }
   .sw-card .sw-actions a,
   .sw-card .sw-actions button {
     flex: 1;
     padding: .35rem .4rem;
     border: 1px solid transparent;
     border-radius: 7px;
-    font-size: .78rem;
+    font-size: .76rem;
     font-weight: 600;
     text-align: center;
     text-decoration: none;
@@ -509,7 +529,8 @@
     gap: .5rem;
   }
   html.is-mobile .sw-card { padding: .6rem .65rem; border-radius: 10px; gap: .2rem; }
-  html.is-mobile .sw-card .sw-name { font-size: .85rem; }
+  html.is-mobile .sw-card .sw-name { font-size: .84rem; }
+  html.is-mobile .sw-card .sw-platform-badge { font-size: .6rem; padding: .06rem .34rem; }
   html.is-mobile .sw-card .sw-desc { font-size: .7rem; line-height: 1.35; }
   html.is-mobile .sw-card .sw-platform { font-size: .68rem; }
   html.is-mobile .sw-card .sw-actions a,
@@ -563,7 +584,7 @@
           <option value="PowerShell">PowerShell</option>
           <option value="Bash">Bash</option>
           <option value="Linux">Linux</option>
-          <option value="Windows">Windows</option>
+          <option value="JS">JS</option>
         </select>
         <button class="outline" onclick="resetCmdFilters()">重置</button>
       </div>
@@ -599,6 +620,9 @@
         </div>
         <select id="sw-platform" onchange="filterSoftware()">
           <option value="">全部平台</option>
+        </select>
+        <select id="sw-category" onchange="filterSoftware()">
+          <option value="">全部类型</option>
         </select>
         <button class="outline" onclick="resetSwFilters()">重置</button>
       </div>
@@ -693,7 +717,8 @@ function downloadScript(id) {
     'PowerShell': '.ps1',
     'bat':        '.bat',
     'vbs':        '.vbs',
-    'Shell':      '.sh'
+    'Shell':      '.sh',
+    'HTML':       '.html'
   };
   const ext = extMap[script.script_type] || '.txt';
   const filename = script.name + ext;
@@ -815,14 +840,17 @@ function buildCmdFilters() {
   });
 
   pSel._childMap = childMap;
+
+  /* 未选择平台时也罗列全部分类 */
+  fillCmdChildOptions('');
 }
 
-function onParentChange() {
-  const parent = $('cmd-parent').value;
+/* 根据当前平台填充分类下拉框（parent 为空时列出全部去重分类） */
+function fillCmdChildOptions(parent) {
   const childSel = $('cmd-child');
-  childSel.innerHTML = '<option value="">全部分类</option>';
-
+  const prev = childSel.value;
   const map = $('cmd-parent')._childMap || {};
+
   let children = [];
   if (parent) {
     children = map[parent] ? [...map[parent]].sort() : [];
@@ -832,12 +860,18 @@ function onParentChange() {
     children = [...set].sort();
   }
 
+  childSel.innerHTML = '<option value="">全部分类</option>';
   children.forEach(c => {
     const o = document.createElement('option');
     o.value = c; o.textContent = c;
     childSel.appendChild(o);
   });
 
+  if (prev && children.includes(prev)) childSel.value = prev;
+}
+
+function onParentChange() {
+  fillCmdChildOptions($('cmd-parent').value);
   filterCommands();
 }
 
@@ -922,8 +956,9 @@ function renderCommands(list) {
 function resetCmdFilters() {
   $('cmd-keyword').value = '';
   $('cmd-parent').value = '';
-  $('cmd-child').innerHTML = '<option value="">全部分类</option>';
   $('cmd-shell').value = '';
+  fillCmdChildOptions('');
+  $('cmd-child').value = '';
   renderCommands();
 }
 
@@ -936,15 +971,26 @@ function buildSwFilters() {
     o.value = p; o.textContent = p;
     sel.appendChild(o);
   });
+
+  const cats = [...new Set(allSoftware.map(s => s.category).filter(Boolean))].sort();
+  const catSel = $('sw-category');
+  catSel.innerHTML = '<option value="">全部类型</option>';
+  cats.forEach(c => {
+    const o = document.createElement('option');
+    o.value = c; o.textContent = c;
+    catSel.appendChild(o);
+  });
 }
 
 function filterSoftware() {
   const kw = $('sw-keyword').value.trim().toLowerCase();
   const platform = $('sw-platform').value;
+  const cat = $('sw-category').value;
   const terms = kw ? kw.replace(/[；;]/g, ' ').split(/\s+/).filter(Boolean) : [];
 
   const filtered = allSoftware.filter(s => {
     if (platform && s.platform !== platform) return false;
+    if (cat && s.category !== cat) return false;
     if (terms.length) {
       const haystack = [s.name, s.url, s.description, s.category, s.platform]
         .join(' ').toLowerCase();
@@ -994,8 +1040,12 @@ function renderSoftware(list) {
       const nameSafe = escapeHtml(s.name);
 
       card.innerHTML =
-        `<div class="sw-name">${nameSafe}</div>` +
-        (s.platform ? `<div class="sw-platform">${escapeHtml(s.platform)}</div>` : '') +
+        `<div class="sw-head">` +
+          `<span class="sw-name">${nameSafe}</span>` +
+          (s.platform
+            ? `<span class="badge badge-platform sw-platform-badge">${escapeHtml(s.platform)}</span>`
+            : '') +
+        `</div>` +
         (s.description ? `<div class="sw-desc">${escapeHtml(s.description)}</div>` : '') +
         `<div class="sw-actions">` +
         `<a class="sw-btn-open" href="${urlSafe}" target="_blank" rel="noopener">打开</a>` +
@@ -1013,6 +1063,7 @@ function renderSoftware(list) {
 function resetSwFilters() {
   $('sw-keyword').value = '';
   $('sw-platform').value = '';
+  $('sw-category').value = '';
   renderSoftware();
 }
 
